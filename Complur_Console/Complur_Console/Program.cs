@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
+//26:09
 namespace Complur_Console
 {
     class Program
@@ -72,8 +75,34 @@ namespace Complur_Console
         {
             _position++; 
         }
-        public SyntaxToken NextToken() 
+        public class AcceptableCharacters {
+            public char additionChar {get; set; }
+            public char subtractionChar {get; set; }
+            public char multiplicationChar {get; set; }
+            public char divisionChar {get; set; }
+            public char openParenChar {get; set; }
+            public char closedParenChar {get; set; }
+        }
+
+        public List<AcceptableCharacters> acceptablChars = new List<AcceptableCharacters>();
+
+        public List<AcceptableCharacters>acceptableCharacters()
+        {
+            acceptablChars.Add(new AcceptableCharacters() {additionChar = '+'}); 
+            acceptablChars.Add(new AcceptableCharacters() {subtractionChar = '-'}); 
+            acceptablChars.Add(new AcceptableCharacters() {multiplicationChar = '*'}); 
+            acceptablChars.Add(new AcceptableCharacters() {divisionChar = '/'}); 
+            acceptablChars.Add(new AcceptableCharacters() {openParenChar = '('}); 
+            acceptablChars.Add(new AcceptableCharacters() {closedParenChar = ')'}); 
+
+            return acceptablChars; 
+        }
+ 
+    
+
+        public SyntaxToken NextToken()
         {   
+
             // <numbers>
             if (char.IsDigit(Current))
             {
@@ -97,8 +126,17 @@ namespace Complur_Console
                 int.TryParse(text, out var value);
                 return new SyntaxToken(SyntaxKind.WhiteSpaceToken, start, text, value); 
             }
+
+            bool badChar = (Current.ToString().Contains(acceptablChars.ToString())); 
+
+            if (!badChar) 
+            {
+                return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
+            }
+
             switch(Current)
             {
+            
                 case '+':
                     return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null); 
                 case '-':
@@ -111,10 +149,8 @@ namespace Complur_Console
                     return new SyntaxToken(SyntaxKind.OpenParenToken, _position++, "(", null); 
                 case ')':
                     return new SyntaxToken(SyntaxKind.ClosedParenToken, _position++, ")", null); 
+   
             }
-
-
-            return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null)
         }
     }
 }

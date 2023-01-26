@@ -15,10 +15,20 @@ namespace Complur_Console
                 var line = Console.ReadLine(); 
                 if (string.IsNullOrWhiteSpace(line))
                     return;
-                if (line == "1 + 2 * 3")
-                    System.Console.WriteLine("7");
-                else
-                    System.Console.WriteLine("ERROR: invalid expression!");
+                
+                var lexer = new Lexer(line);
+                while(true)
+                {
+                    var token = lexer.NextToken(); 
+                    if (token.Kind == SyntaxKind.EndofFileToken) {
+                        break; 
+                    }
+                    System.Console.WriteLine($"{token.Kind}: '{token.Text}'");
+                    if (token.Value != null) {
+                        System.Console.WriteLine($"{token.Value}");
+                    }
+                    System.Console.WriteLine();
+                }
             }
         }
     }
@@ -33,7 +43,8 @@ namespace Complur_Console
         DivideToken,
         OpenParenToken,
         ClosedParenToken,
-        BadToken
+        BadToken,
+        EndofFileToken
     }
     class SyntaxToken
     {
@@ -75,34 +86,14 @@ namespace Complur_Console
         {
             _position++; 
         }
-        public class AcceptableCharacters {
-            public char additionChar {get; set; }
-            public char subtractionChar {get; set; }
-            public char multiplicationChar {get; set; }
-            public char divisionChar {get; set; }
-            public char openParenChar {get; set; }
-            public char closedParenChar {get; set; }
-        }
-
-        public List<AcceptableCharacters> acceptablChars = new List<AcceptableCharacters>();
-
-        public List<AcceptableCharacters>acceptableCharacters()
-        {
-            acceptablChars.Add(new AcceptableCharacters() {additionChar = '+'}); 
-            acceptablChars.Add(new AcceptableCharacters() {subtractionChar = '-'}); 
-            acceptablChars.Add(new AcceptableCharacters() {multiplicationChar = '*'}); 
-            acceptablChars.Add(new AcceptableCharacters() {divisionChar = '/'}); 
-            acceptablChars.Add(new AcceptableCharacters() {openParenChar = '('}); 
-            acceptablChars.Add(new AcceptableCharacters() {closedParenChar = ')'}); 
-
-            return acceptablChars; 
-        }
- 
-    
 
         public SyntaxToken NextToken()
         {   
 
+            // EOF
+            if (_position >= _text.Length) {
+                return new SyntaxToken(SyntaxKind.EndofFileToken, _position, "\0", null); 
+            }
             // <numbers>
             if (char.IsDigit(Current))
             {
@@ -127,30 +118,20 @@ namespace Complur_Console
                 return new SyntaxToken(SyntaxKind.WhiteSpaceToken, start, text, value); 
             }
 
-            bool badChar = (Current.ToString().Contains(acceptablChars.ToString())); 
+            if (Current == '+')
+                return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null);
+            else if (Current =='-')
+                return new SyntaxToken(SyntaxKind.MinusToken, _position++, "-", null);
+            else if (Current =='*')
+                return new SyntaxToken(SyntaxKind.MultiplyToken, _position++, "*", null); 
+            else if (Current =='/')
+                 return new SyntaxToken(SyntaxKind.DivideToken, _position++, "/", null); 
+            else if (Current =='(')
+                return new SyntaxToken(SyntaxKind.OpenParenToken, _position++, "(", null); 
+            else if (Current ==')')
+                return new SyntaxToken(SyntaxKind.ClosedParenToken, _position++, ")", null); 
 
-            if (!badChar) 
-            {
-                return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
-            }
-
-            switch(Current)
-            {
-            
-                case '+':
-                    return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null); 
-                case '-':
-                    return new SyntaxToken(SyntaxKind.MinusToken, _position++, "-", null); 
-                case '*':
-                    return new SyntaxToken(SyntaxKind.MultiplyToken, _position++, "*", null); 
-                case '/':
-                    return new SyntaxToken(SyntaxKind.DivideToken, _position++, "/", null); 
-                case '(':
-                    return new SyntaxToken(SyntaxKind.OpenParenToken, _position++, "(", null); 
-                case ')':
-                    return new SyntaxToken(SyntaxKind.ClosedParenToken, _position++, ")", null); 
-   
-            }
+            return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position -1, -1), null); 
         }
     }
 }

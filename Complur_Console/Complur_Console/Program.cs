@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-//26:09
+//29:09
 namespace Complur_Console
 {
     class Program

@@ -64,6 +64,8 @@ namespace Complur_Console
         public string Text {get; }
         public object Value { get; }
     }
+    // Tokens - leaves in tree
+    // Parser - sentences - trees of type syntax nodes
     class Lexer 
     {
         private readonly string _text;
@@ -115,7 +117,7 @@ namespace Complur_Console
                 var length = _position - start; 
                 var text = _text.Substring(start, length); 
                 int.TryParse(text, out var value);
-                return new SyntaxToken(SyntaxKind.WhiteSpaceToken, start, text, value); 
+                return new SyntaxToken(SyntaxKind.WhiteSpaceToken, start, text, null); 
             }
 
             if (Current == '+')
@@ -134,4 +136,27 @@ namespace Complur_Console
             return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position -1, -1), null); 
         }
     }
+    class Parser
+    {
+        public Parser(string text) 
+        {
+            var tokens = new List<SyntaxToken>();
+
+            var lexer = new Lexer(text);
+            SyntaxToken token;
+            do
+            {
+                token = lexer.NextToken(); 
+
+                if (token.Kind != SyntaxKind.WhiteSpaceToken &&
+                    token.Kind != SyntaxKind.BadToken)
+                {
+                    tokens.Add(token); 
+                }
+            } while (token.Kind != SyntaxKind.EndofFileToken); 
+
+        }
+    }
 }
+
+   
